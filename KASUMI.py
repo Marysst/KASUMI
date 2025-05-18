@@ -134,3 +134,27 @@ def KeySchedule(K):
 
     keys[i+1] = {"KL": KL, "KO": KO, "KI": KI}
   return keys
+
+def KASUMI_EncryptBlock(I, K):
+  L0 = I >> 32
+  R0 = I & 0xFFFFFFFF
+
+  RK = KeySchedule(K)
+
+  R, L = R0, L0
+  for i in range(0, 8):
+    R, L = L, R ^ fi(L, RK[i+1], i+1)
+
+  return (L << 32) | R
+
+def KASUMI_DecryptBlock(I, K):
+  L0 = I >> 32
+  R0 = I & 0xFFFFFFFF
+
+  RK = KeySchedule(K)
+
+  R, L = R0, L0
+  for i in reversed(range(0, 8)):
+    L, R = R, L ^ fi(R, RK[i+1], i+1)
+
+  return (L << 32) | R
