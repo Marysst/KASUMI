@@ -158,3 +158,59 @@ def KASUMI_DecryptBlock(I, K):
     L, R = R, L ^ fi(R, RK[i+1], i+1)
 
   return (L << 32) | R
+
+def KASUMI_EncryptData(I, K):
+    block_size = 8
+    output = bytearray()
+    
+    try:
+        decoded_K = K.decode("ascii")
+        K = bytes.fromhex(decoded_K.replace(" ", ""))
+    except (UnicodeDecodeError, ValueError):
+            pass
+
+    if len(K) != 16:
+      return False, "Key must be exactly 16 bytes (32 hex characters)"
+    
+    K_int = int.from_bytes(K, byteorder="big")
+    
+    if len(I) % block_size != 0:
+        padding = block_size - (len(I) % block_size)
+        I += b'\x00' * padding
+
+    for i in range(0, len(I), block_size):
+        block = I[i:i+block_size]
+        block_int = int.from_bytes(block, 'big')
+        encrypted_block = KASUMI_EncryptBlock(block_int, K_int)
+        output.extend(encrypted_block.to_bytes(block_size, 'big'))
+
+    return True, bytes(output)
+
+def KASUMI_DecryptData(I, K):
+    block_size = 8
+    output = bytearray()
+
+    try:
+        if len(I) % block_size != 0:
+          raise ValueError
+    except ValueError:
+        return False, "The file is corrupted. Data length is not a multiple of 8 bytes"
+    
+    try:
+        decoded_K = K.decode("ascii")
+        K = bytes.fromhex(decoded_K.replace(" ", ""))
+    except (UnicodeDecodeError, ValueError):
+            pass
+
+    if len(K) != 16:
+      return False, "Key must be exactly 16 bytes (32 hex characters)"
+    
+    K_int = int.from_bytes(K, byteorder="big")
+
+    for i in range(0, len(I), block_size):
+        block = I[i:i+block_size]
+        block_int = int.from_bytes(block, 'big')
+        decrypted_block = KASUMI_DecryptBlock(block_int, K_int)
+        output.extend(decrypted_block.to_bytes(block_size, 'big'))
+
+    return True, bytes(output)
