@@ -66,3 +66,28 @@ def FI(I, KI):
     R4 = R3
     
     return (L4 << 9) | R4
+
+def FO(I, KO, KI):
+  L0 = I >> 16
+  R0 = I & 0xFFFF
+
+  Lj, Rj = L0, R0
+  for j in range(0, 3):
+    Rj, Lj = FI(Lj ^ KO[j] , KI[j] ) ^ Rj, Rj
+    
+  return (Lj << 16) | Rj
+
+def FL(I, KL):
+  KL1 = KL[0]
+  KL2 = KL[1]
+
+  L = I >> 16
+  R = I & 0xFFFF
+
+  Rnew = R ^ ROL(L & KL1)
+  Lnew = L ^ ROL(Rnew | KL2)
+  
+  return (Lnew << 16) | Rnew
+
+def ROL(x, n=1):
+    return ((x << n) | (x >> (16 - n))) & 0xFFFF
