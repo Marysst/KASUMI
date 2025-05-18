@@ -45,7 +45,7 @@ class TestKASUMIEncryption(unittest.TestCase):
         output_int = int(output, 16)
         result = input_int
         for _ in range(50):
-            result = KASUMI_EncryptBlock(input_int, key_int)
+            result = KASUMI_EncryptBlock(result, key_int)
         self.assertEqual(result, output_int)
 
 if __name__ == '__main__':
